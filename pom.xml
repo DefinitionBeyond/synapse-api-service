@@ -102,10 +102,28 @@
     </dependencies>
 
     <build>
+        <finalName>${name}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <registry>registry.cn-beijing.aliyuncs.com</registry>
+                    <certPath>~/.docker/</certPath>
+                    <images>
+                        <image>
+                            <name>azero/${name}</name>
+                            <alias>dockerfile</alias>
+                            <build>
+                                <contextDir>${project.basedir}/</contextDir>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${version}</tag>
+                                </tags>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>
