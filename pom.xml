@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sai.azero</groupId>
     <artifactId>synapse-api-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1-rc0</version>
     <name>synapse-api-service</name>
     <description>Demo project for Spring Boot</description>
 
@@ -103,7 +103,12 @@
 
     <build>
         <finalName>${name}</finalName>
+
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
