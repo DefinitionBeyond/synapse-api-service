@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="runtime" packages="">
+    <Properties>
+        <Property name="log-path">logs/${env:HOSTNAME:-}</Property>
+        <Property name="LOG_PATTERN"
+                  value="[%-5level] %d{HH:mm:ss.SSS} [%t] %c{1}.%M %l - %msg%n" />
+    </Properties>
+    <Appenders>
+
+        <RollingFile name="file-log"
+                     fileName="${log-path}/runtime.log" filePattern="${log-path}/runtime-%i.log"
+                     append="true">
+            <JSONLayout compact="true" eventEol="true">
+                <KeyValuePair key="app.id" value="${sys:app.id}"/>
+                <KeyValuePair key="env" value="${sys:env}"/>
+            </JSONLayout>
+            <PatternLayout>
+                <pattern>${LOG_PATTERN}
+                </pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="100"></DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="failoverKafkaLog"
+                     fileName="${log-path}/failoverKafka.log"
+                     filePattern="${log-path}/failoverKafka.%d{yyyy-MM-dd}.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT"
+                             onMismatch="DENY" />
+            <JSONLayout compact="true" eventEol="true">
+                <KeyValuePair key="app.id" value="${sys:app.id}"/>
+                <KeyValuePair key="env" value="${sys:env}"/>
+            </JSONLayout>
+            <PatternLayout>
+                <Pattern>${LOG_PATTERN}</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+
+        <!-- 输出错误日志到Kafka -->
+        <Kafka name="kafka" topic="azero.log.runtime"
+               ignoreExceptions="false" syncSend="false">
+            <ThresholdFilter level="debug" onMatch="ACCEPT"
+                             onMismatch="DENY" />
+            <JSONLayout compact="true" eventEol="true">
+                <KeyValuePair key="app.id" value="${sys:app.id}"/>
+                <KeyValuePair key="env" value="${sys:env}"/>
+            </JSONLayout>
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Property name="bootstrap.servers">${sys:bootstrap.servers}
+            </Property>
+             
+            <Property name="request.timeout.ms">5000</Property>
+            <Property name="transaction.timeout.ms">5000</Property>
+            <Property name="max.block.ms">2000</Property>
+        </Kafka>
+
+        <Failover name="failover" primary="kafka"
+                  retryIntervalSeconds="60">
+            <Failovers>
+                <AppenderRef ref="failoverKafkaLog" />
+            </Failovers>
+        </Failover>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+        </Console>
+
+    </Appenders>
+    <Loggers>
+        <Root level="debug" additivity="false">
+            <appender-ref ref="console" />
+            <appender-ref ref="file-log" />
+            <appender-ref ref="kafka" />
+        </Root>
+        <Logger name="org.apache.kafka" level="info"
+                additivity="false">
+        </Logger>
+    </Loggers>
+</Configuration>
