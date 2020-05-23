@@ -17,6 +17,6 @@ ADD ./scripts /opt/azero/${SERVER_NAME}/scripts
 #RUN mkdir -p /opt/azero/${SERVER_NAME}/azero/skills
 RUN dos2unix scripts/*
 
-EXPOSE 8705
+EXPOSE 6061
 #CMD sleep  10000000
 CMD sh scripts/startdocker.sh
