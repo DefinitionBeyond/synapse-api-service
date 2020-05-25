@@ -14,10 +14,10 @@ import org.apache.ibatis.annotations.Select;
  */
 @Mapper
 public interface UserMapper{
-    @Select("select * from login_tokens where 1=1 and user_id = #{userId}")
+    @Select("select * from users where 1=1 and name = #{userId}")
     UserPo findOne(@Param("userId") String userId);
 
-    @Insert("insert into login_tokens(user_id,device_id,login_token,create_time) values(#{userId},#{deviceId},#{loginToken},#{createTime}) on duplicate key update login_token = #{loginToken}")
+    @Insert("insert into login_tokens(user_id,device_id,login_token,create_time) values(#{userId},#{deviceId},#{loginToken},#{createTime})")
     int insert(UserPo user);
 
     @Delete("delete from login_tokens where 1=1 and login_token = #{loginToken} and device_id = ${deviceId}")

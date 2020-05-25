@@ -13,11 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 
 import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
 import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
@@ -60,11 +60,10 @@ public abstract class UserServiceAbstract {
     @Autowired
     LoginTokenDao dao;
 
+    @Transactional
     protected Mono<ResponseEntity<?>> registerToMatrix(UserPo po) {
 
-        Date date = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        po.setCreateTime(java.sql.Date.valueOf(simpleDateFormat.format(date.getTime())));
+        po.setCreateTime(new Timestamp(System.currentTimeMillis()));
         String token = new String();
         if (validTime > 0) {
             token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, validTime).getToken();
@@ -75,17 +74,18 @@ public abstract class UserServiceAbstract {
 
         log.info("Cur user isn't exists , user info {}", po);
 
+        try {
+            dao.saveUser(po);
+        }catch (Exception e){
+            log.error("Save userinfo failure, cur userinfo {}", po, e);
+            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE);
+        }
         return this.register(po.getUserName()).flatMap(flag -> {
             if (flag) {
-                dao.saveUser(po);
                 return ResponseUtil.generalResponse(HttpStatus.OK, po);
-
             } else {
                 return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE);
             }
-        }).onErrorResume(e -> {
-            log.error("Save userinfo failure, cur userinfo {}", po, e);
-            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE);
         });
     }
 

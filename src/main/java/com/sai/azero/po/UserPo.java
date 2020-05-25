@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 /**
  * @Description
@@ -21,5 +22,5 @@ public class UserPo {
     private String deviceId;
     private String loginToken;
     private String userId;
-    private Date createTime;
+    private Timestamp createTime;
 }

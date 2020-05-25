@@ -2,9 +2,8 @@ CREATE TABLE "login_tokens" (
     "user_id" TEXT NOT NULL,
     "device_id" TEXT NOT NULL,
     "login_token" TEXT NOT NULL,
-    "create_time" TIME NOT NULL
-)
-;
+    "create_time" timestamp NOT NULL
+);
 CREATE INDEX "INDEX_login_token" ON login_tokens ("login_token");
 CREATE UNIQUE INDEX "UNIQUE_INDEX" ON login_tokens ("user_id", "device_id");
 COMMENT ON COLUMN "login_tokens"."user_id" IS 'Matrix用户ID';

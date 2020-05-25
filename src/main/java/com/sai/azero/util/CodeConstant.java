@@ -15,6 +15,7 @@ public enum CodeConstant {
     MISS_PARAMETER("Missing parameter"),
     CONNECTION_MATRIX_FAILURE("Connection matrix error"),
     SAVE_DATABEASE_FAILURE("Save userinfo failure"),
+    REGISTER_FAILURE("Reg to matrix failure"),
     SERVER_ERROT("Internal server error");
 //    private int code;
     private String msg;

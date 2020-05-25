@@ -21,6 +21,7 @@ public class TokenUtil {
 
     public TokenUtil(String userName, String location, String secretKey, String deviceId, String identifier, long validTime) {
         this.userId = "@" + userName + ":" + location + "";
+        this.location = location;
         this.secretKey = secretKey;
         this.identifier = identifier;
         this.deviceId = deviceId;
@@ -31,7 +32,7 @@ public class TokenUtil {
         this(userName, location, secretKey, deviceId, identifier, DEFAULT_VALID_TIME);
     }
 
-    public String getToken() {
+    public String getToken() throws RuntimeException {
         long curTime = System.currentTimeMillis();
         long expiry = curTime + this.validTime;
         Macaroon macaroon = new MacaroonsBuilder(this.location, this.secretKey, this.identifier)
