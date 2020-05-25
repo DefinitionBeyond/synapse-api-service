@@ -4,6 +4,7 @@ import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
 import com.sai.azero.dao.LoginTokenDao;
 import com.sai.azero.po.RegisterPo;
 import com.sai.azero.po.UserPo;
+import com.sai.azero.po.UserResponse;
 import com.sai.azero.util.ResponseUtil;
 import com.sai.azero.util.TokenUtil;
 import lombok.extern.log4j.Log4j2;
@@ -14,13 +15,17 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
 import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
+import static com.sai.azero.util.CodeConstant.USER_EXSEiT;
 
 /**
  * @Description
@@ -64,45 +69,58 @@ public abstract class UserServiceAbstract {
     protected Mono<ResponseEntity<?>> registerToMatrix(UserPo po) {
 
         po.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        String token = new String();
-        if (validTime > 0) {
-            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, validTime).getToken();
-        } else {
-            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier).getToken();
-        }
-        po.setLoginToken(token);
+
+        po.setLoginToken(getToken(po));
 
         log.info("Cur user isn't exists , user info {}", po);
 
-        try {
-            dao.saveUser(po);
-        }catch (Exception e){
-            log.error("Save userinfo failure, cur userinfo {}", po, e);
-            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE);
-        }
-        return this.register(po.getUserName()).flatMap(flag -> {
-            if (flag) {
-                return ResponseUtil.generalResponse(HttpStatus.OK, po);
-            } else {
-                return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE);
+
+        return this.register(po.getUserName(),po.getDeviceId()).flatMap(res -> {
+            if (!CollectionUtils.isEmpty(res)) {
+                try {
+                    dao.saveUser(po);
+                    UserResponse response =  UserResponse.builder()
+                            .userId(po.getUserId())
+                            .loginToken(po.getLoginToken())
+                            .deviceId(po.getDeviceId())
+                            .azeroUserId(po.getAzeroUserId())
+                            .build();
+                    return ResponseUtil.generalResponse(HttpStatus.OK, response);
+                } catch (Exception e) {
+                    log.error("Save userinfo failure, cur userinfo {}", po, e);
+                    return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE.getMsg());
+                }
             }
+            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE.getMsg());
+        }).onErrorResume(e -> {
+            log.error("Register failure by username {}", po.getUserName(), e);
+            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         });
+
     }
 
-    private Mono<Boolean> register(String username) {
-        RegisterPo request = RegisterPo.builder().password(password).username(username).auth(RegisterPo.Auth.builder().type(type).build()).build();
+    protected String getToken(UserPo po){
+        String token = new String();
+        if (validTime > 0) {
+            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, po.getAzeroUserId(), validTime).getToken();
+        } else {
+            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier,po.getAzeroUserId()).getToken();
+        }
+        return token;
+    }
+
+    private Mono<Map> register(String username,String deviceId) {
+        RegisterPo request = RegisterPo.builder().password(password).username(username).device_id(deviceId).auth(RegisterPo.Auth.builder().type(type).build()).build();
         return WebClient.create(registerUrl).post()
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .syncBody(request)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(Object.class).flatMap(res -> {
-                    log.info("Register success by username {}", username);
-                    return Mono.just(true);
-                }).onErrorResume(e -> {
-                    log.error("Register failure by username {}", username, e);
-                    return Mono.just(false);
-                });
+                .onStatus(status -> status.equals(HttpStatus.BAD_REQUEST),
+                        clientResponse -> {
+                            throw Exceptions.propagate(new Exception(USER_EXSEiT.getMsg()));
+                        })
+                .bodyToMono(Map.class);
     }
 
 }

@@ -10,11 +10,18 @@ WORKDIR /opt/azero/${SERVER_NAME}
 #RUN mkdir -p /opt/azero
 #ENV JAVA_OPTS=""
 
-
 COPY ./target/${SERVER_NAME}.jar /opt/azero/${SERVER_NAME}/lib/
 ADD ./config /opt/azero/${SERVER_NAME}/config
 ADD ./scripts /opt/azero/${SERVER_NAME}/scripts
 #RUN mkdir -p /opt/azero/${SERVER_NAME}/azero/skills
+
+#配置时区信息
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+RUN apk add --no-cache tzdata \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    &&rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache
+
 RUN dos2unix scripts/*
 
 EXPOSE 6061

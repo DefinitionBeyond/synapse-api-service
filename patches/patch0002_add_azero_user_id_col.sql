@@ -1,0 +1,1 @@
+ALTER TABLE "login_tokens" ADD COLUMN azero_user_id text;

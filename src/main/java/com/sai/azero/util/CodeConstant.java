@@ -16,6 +16,7 @@ public enum CodeConstant {
     CONNECTION_MATRIX_FAILURE("Connection matrix error"),
     SAVE_DATABEASE_FAILURE("Save userinfo failure"),
     REGISTER_FAILURE("Reg to matrix failure"),
+    USER_EXSEiT("User already reg"),
     SERVER_ERROT("Internal server error");
 //    private int code;
     private String msg;

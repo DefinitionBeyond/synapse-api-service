@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterPo {
+    private String device_id;
     private String password;
     private String username;
     private Auth auth;
