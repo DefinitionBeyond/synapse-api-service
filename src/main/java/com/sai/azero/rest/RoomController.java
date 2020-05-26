@@ -1,6 +1,7 @@
 package com.sai.azero.rest;
 
 import com.sai.azero.po.UserPo;
+import com.sai.azero.service.RoomService;
 import com.sai.azero.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +18,14 @@ import reactor.core.publisher.Mono;
  * @CreateTime 2020/5/25 15:44
  */
 @Controller
-@RequestMapping("/_matrix/client/r0/access_token")
-public class AccessTokenController {
+@RequestMapping("/_matrix/client/r0/rooms")
+public class RoomController {
     @Autowired
-    UserService userService;
+    RoomService roomService;
 
     @RequestMapping(value = "",method = RequestMethod.POST)
     @ResponseBody
     public Mono<ResponseEntity<?>> loginToken(@RequestBody UserPo request){
-        return userService.getAccessToken(request);
+        return roomService.getRoomList(request.getAzeroUserId());
     }
 }

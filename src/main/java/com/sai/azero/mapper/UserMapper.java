@@ -22,12 +22,18 @@ public interface UserMapper{
     @Select("select exists (select 1 from users where 1=1 and name = #{userId})")
     boolean userExists(@Param("userId") String userId);
 
-    @Insert("insert into login_tokens(user_id,device_id,login_token,create_time) values(#{userId},#{deviceId},#{loginToken},#{createTime})  ON CONFLICT(user_id,device_id) do nothing")
+    @Insert("insert into login_tokens(user_id,device_id,login_token,create_time,azero_user_id) values(#{userId},#{deviceId},#{loginToken},#{createTime},#{azeroUserId})  ON CONFLICT(user_id,device_id) do update set login_token = #{loginToken} , create_time = #{createTime}")
     int insert(UserPo user);
 
     @Delete("delete from login_tokens where 1=1 and login_token = #{loginToken} and device_id = ${deviceId}")
     int deleteByDeviceIdAndLoginToken(UserPo user);
 
+    @Select("select user_id from login_tokens where 1=1 and azero_user_id = #{azeroUserId}")
+    String findUserIdByAzeroId(@Param("azeroUserId") String azeroUserId);
+
 //    @Select("select * from access_tokens where user_id = (select user_id from login_tokens where 1=1 and azero_user_id = #{azeroUserId})")
 //    List<UserPo> selectAccessTokenByAzeroUserId(@Param("azeroUserId")String azeroUserId);
+
+
+
 }

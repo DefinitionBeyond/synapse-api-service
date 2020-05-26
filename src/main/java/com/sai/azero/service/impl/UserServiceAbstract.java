@@ -1,7 +1,7 @@
 package com.sai.azero.service.impl;
 
 import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
-import com.sai.azero.dao.LoginTokenDao;
+import com.sai.azero.dao.UserDao;
 import com.sai.azero.po.RegisterPo;
 import com.sai.azero.po.UserPo;
 import com.sai.azero.po.UserResponse;
@@ -14,17 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
-import java.sql.Timestamp;
 import java.util.Map;
 
 import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
-import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
 import static com.sai.azero.util.CodeConstant.USER_EXSEiT;
 
 /**
@@ -63,33 +60,20 @@ public abstract class UserServiceAbstract {
     }
 
     @Autowired
-    LoginTokenDao dao;
+    UserDao dao;
 
-    @Transactional
     protected Mono<ResponseEntity<?>> registerToMatrix(UserPo po) {
-
-        po.setCreateTime(new Timestamp(System.currentTimeMillis()));
-
-        po.setLoginToken(getToken(po));
-
-        log.info("Cur user isn't exists , user info {}", po);
-
 
         return this.register(po.getUserName(),po.getDeviceId()).flatMap(res -> {
             if (!CollectionUtils.isEmpty(res)) {
-                try {
-                    dao.saveUser(po);
                     UserResponse response =  UserResponse.builder()
                             .userId(po.getUserId())
                             .loginToken(po.getLoginToken())
                             .deviceId(po.getDeviceId())
                             .azeroUserId(po.getAzeroUserId())
+                            .createTime(po.getCreateTime())
                             .build();
                     return ResponseUtil.generalResponse(HttpStatus.OK, response);
-                } catch (Exception e) {
-                    log.error("Save userinfo failure, cur userinfo {}", po, e);
-                    return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE.getMsg());
-                }
             }
             return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE.getMsg());
         }).onErrorResume(e -> {

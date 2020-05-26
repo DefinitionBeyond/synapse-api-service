@@ -13,5 +13,4 @@ public interface UserService {
     Mono<ResponseEntity<?>> loginToken(UserPo request);
     ResponseEntity<String> logout(UserPo request);
 
-    Mono<ResponseEntity<?>> getAccessToken(UserPo request);
 }

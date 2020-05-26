@@ -13,7 +13,7 @@ import java.util.List;
  * @CreateTime 2020/5/22 18:43
  */
 @Component
-public class LoginTokenDao {
+public class UserDao {
     @Autowired
     UserMapper mapper;
 
@@ -21,9 +21,9 @@ public class LoginTokenDao {
         return mapper.findAllByUserId(userId);
     }
 
-//    public List<UserPo> selectAccessTokenByAzeroUserId(String azeroUserId){
-//        return mapper.selectAccessTokenByAzeroUserId(azeroUserId);
-//    }
+    public String findUserIdByAzeroId(String azeroUserId){
+        return mapper.findUserIdByAzeroId(azeroUserId);
+    }
 
     public boolean userExists(String userId){
         return mapper.userExists(userId);
