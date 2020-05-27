@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import static com.sai.azero.util.CodeConstant.AZERO_ID_USED;
 import static com.sai.azero.util.CodeConstant.MISS_PARAMETER;
@@ -44,18 +45,9 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
         request.setCreateTime(createTime);
         String loginToken = getToken(request);
         request.setLoginToken(loginToken);
-        try {
-            // 检查azero是否已经被不同的userId使用
-            String userIdByAzeroId = dao.findUserIdByAzeroId(request.getAzeroUserId());
-            if (!userIdByAzeroId.equals(userId)) {
-                return ResponseUtil.generalResponse(HttpStatus.BAD_REQUEST, AZERO_ID_USED.getMsg());
-            }
-            dao.saveUser(request);
-        } catch (Exception e) {
-            log.error("Save userinfo failure, cur userinfo {}", request, e);
-            return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE.getMsg());
-        }
+
         if (dao.userExists(userId)) {
+
             UserResponse response = UserResponse.builder()
                     .azeroUserId(request.getAzeroUserId())
                     .deviceId(request.getDeviceId())
@@ -63,8 +55,17 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
                     .userId(userId)
                     .createTime(createTime)
                     .build();
-            log.info("User is already exsist ,login token response {}", response);
-            return ResponseUtil.generalResponse(HttpStatus.OK, response);
+            try {
+                // 检查azero是否已经被不同的userId使用
+                List<UserPo> userPoList = dao.findAllByAzeroId(request.getAzeroUserId());
+                if (!checkConflictUser(userPoList,request)) {
+                    dao.saveUser(request);
+                }
+                return ResponseUtil.generalResponse(HttpStatus.OK, response);
+            } catch (Exception e) {
+                log.error("Save userinfo failure, cur userinfo {}", request, e);
+                return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE.getMsg());
+            }
         } else {
             return registerToMatrix(request);
         }
@@ -92,7 +93,4 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
         }
     }
 
-    private boolean checkRequest(UserPo request) {
-        return StringUtils.isEmpty(request.getDeviceId()) || StringUtils.isEmpty(request.getUserName()) ? false : true;
-    }
 }

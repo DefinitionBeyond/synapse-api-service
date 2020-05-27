@@ -25,6 +25,10 @@ public class UserDao {
         return mapper.findUserIdByAzeroId(azeroUserId);
     }
 
+    public List<UserPo> findAllByAzeroId(String azeroUserId){
+        return mapper.findAllByAzeroId(azeroUserId);
+    }
+
     public boolean userExists(String userId){
         return mapper.userExists(userId);
     }

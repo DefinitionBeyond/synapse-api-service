@@ -15,11 +15,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
 import static com.sai.azero.util.CodeConstant.USER_EXSEiT;
@@ -64,16 +68,16 @@ public abstract class UserServiceAbstract {
 
     protected Mono<ResponseEntity<?>> registerToMatrix(UserPo po) {
 
-        return this.register(po.getUserName(),po.getDeviceId()).flatMap(res -> {
+        return this.register(po.getUserName(), po.getDeviceId()).flatMap(res -> {
             if (!CollectionUtils.isEmpty(res)) {
-                    UserResponse response =  UserResponse.builder()
-                            .userId(po.getUserId())
-                            .loginToken(po.getLoginToken())
-                            .deviceId(po.getDeviceId())
-                            .azeroUserId(po.getAzeroUserId())
-                            .createTime(po.getCreateTime())
-                            .build();
-                    return ResponseUtil.generalResponse(HttpStatus.OK, response);
+                UserResponse response = UserResponse.builder()
+                        .userId(po.getUserId())
+                        .loginToken(po.getLoginToken())
+                        .deviceId(po.getDeviceId())
+                        .azeroUserId(po.getAzeroUserId())
+                        .createTime(po.getCreateTime())
+                        .build();
+                return ResponseUtil.generalResponse(HttpStatus.OK, response);
             }
             return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE.getMsg());
         }).onErrorResume(e -> {
@@ -83,17 +87,17 @@ public abstract class UserServiceAbstract {
 
     }
 
-    protected String getToken(UserPo po){
+    protected String getToken(UserPo po) {
         String token = new String();
         if (validTime > 0) {
             token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, po.getAzeroUserId(), validTime).getToken();
         } else {
-            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier,po.getAzeroUserId()).getToken();
+            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, po.getAzeroUserId()).getToken();
         }
         return token;
     }
 
-    private Mono<Map> register(String username,String deviceId) {
+    private Mono<Map> register(String username, String deviceId) {
         RegisterPo request = RegisterPo.builder().password(password).username(username).device_id(deviceId).auth(RegisterPo.Auth.builder().type(type).build()).build();
         return WebClient.create(registerUrl).post()
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -105,6 +109,24 @@ public abstract class UserServiceAbstract {
                             throw Exceptions.propagate(new Exception(USER_EXSEiT.getMsg()));
                         })
                 .bodyToMono(Map.class);
+    }
+
+    protected boolean checkRequest(UserPo request) {
+        return StringUtils.isEmpty(request.getDeviceId()) || StringUtils.isEmpty(request.getUserName()) ? false : true;
+    }
+
+    protected boolean checkConflictUser(List<UserPo> userPoList, UserPo request) {
+        if (CollectionUtils.isEmpty(userPoList)) {
+            return false;
+        }
+        List<UserPo> collect = userPoList.stream()
+                .filter(e -> e.getAzeroUserId().equals(request.getAzeroUserId()) &&
+                        e.getUserId().equals(request.getUserId()) &&
+                        e.getDeviceId().equals(request.getDeviceId()))
+                .collect(Collectors.toList());
+
+        return !CollectionUtils.isEmpty(collect);
+
     }
 
 }
