@@ -9,11 +9,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sai.azero.util.CodeConstant.AZERO_ID_USED;
 import static com.sai.azero.util.CodeConstant.MISS_PARAMETER;
@@ -46,6 +49,8 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
         String loginToken = getToken(request);
         request.setLoginToken(loginToken);
 
+        // 检查azero是否已经被不同的userId使用
+        List<UserPo> userPoList = dao.findAllByAzeroId(request.getAzeroUserId());
         if (dao.userExists(userId)) {
 
             UserResponse response = UserResponse.builder()
@@ -56,8 +61,6 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
                     .createTime(createTime)
                     .build();
             try {
-                // 检查azero是否已经被不同的userId使用
-                List<UserPo> userPoList = dao.findAllByAzeroId(request.getAzeroUserId());
                 if (!checkConflictUser(userPoList,request)) {
                     dao.saveUser(request);
                 }
@@ -67,7 +70,12 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
                 return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, SAVE_DATABEASE_FAILURE.getMsg());
             }
         } else {
-            return registerToMatrix(request);
+            if (CollectionUtils.isEmpty(userPoList)) {
+                dao.saveUser(request);
+                return registerToMatrix(request);
+            }else {
+                return ResponseUtil.generalResponse(HttpStatus.BAD_REQUEST, AZERO_ID_USED.getMsg());
+            }
         }
 
     }

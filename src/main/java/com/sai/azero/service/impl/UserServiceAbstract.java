@@ -77,6 +77,7 @@ public abstract class UserServiceAbstract {
                         .azeroUserId(po.getAzeroUserId())
                         .createTime(po.getCreateTime())
                         .build();
+                dao.saveUser(po);
                 return ResponseUtil.generalResponse(HttpStatus.OK, response);
             }
             return ResponseUtil.generalResponse(HttpStatus.INTERNAL_SERVER_ERROR, CONNECTION_MATRIX_FAILURE.getMsg());
