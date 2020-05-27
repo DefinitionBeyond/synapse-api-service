@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 
+import static com.sai.azero.util.CodeConstant.AZERO_ID_USED;
 import static com.sai.azero.util.CodeConstant.MISS_PARAMETER;
 import static com.sai.azero.util.CodeConstant.OK;
 import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
@@ -44,6 +45,11 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
         String loginToken = getToken(request);
         request.setLoginToken(loginToken);
         try {
+            // 检查azero是否已经被不同的userId使用
+            String userIdByAzeroId = dao.findUserIdByAzeroId(request.getAzeroUserId());
+            if (!userIdByAzeroId.equals(userId)) {
+                return ResponseUtil.generalResponse(HttpStatus.BAD_REQUEST, AZERO_ID_USED.getMsg());
+            }
             dao.saveUser(request);
         } catch (Exception e) {
             log.error("Save userinfo failure, cur userinfo {}", request, e);

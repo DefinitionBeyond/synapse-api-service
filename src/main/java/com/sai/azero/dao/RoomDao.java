@@ -1,6 +1,7 @@
 package com.sai.azero.dao;
 
 import com.sai.azero.mapper.RoomMapper;
+import com.sai.azero.po.RoomInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +17,11 @@ public class RoomDao {
     @Autowired
     RoomMapper roomMapper;
 
-    public List<Object[]> getRoomList(String userId){
+    public List<RoomInfo> getRoomList(String userId){
         return roomMapper.findGroupRoomByUserId(userId);
     }
 
-    public List<Object[]> getDirectRoomList(String userId){
+    public List<RoomInfo> getDirectRoomList(String userId){
         return roomMapper.findDirectRoomByUserId(userId);
     }
 }

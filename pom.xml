@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sai.azero</groupId>
     <artifactId>synapse-api-service</artifactId>
-    <version>0.0.1-rc3</version>
+    <version>0.0.1-rc4</version>
     <name>synapse-api-service</name>
     <description>Demo project for Spring Boot</description>
 

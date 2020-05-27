@@ -5,18 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 /**
  * @Description
  * @Author liutao
- * @CreateTime 2020/5/26 16:30
+ * @CreateTime 2020/5/27 10:51
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomsResponsePo {
-    List<RoomInfo> rooms;
-    List<RoomInfo> directRooms;
+public class RoomInfo{
+    private String userId;
+    private String roomId;
+    private String name;
+    private Integer localUsersInRoom;
+    private String displayName;
 }
+

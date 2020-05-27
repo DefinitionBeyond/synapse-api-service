@@ -16,6 +16,7 @@ public enum CodeConstant {
     CONNECTION_MATRIX_FAILURE("Connection matrix error"),
     SAVE_DATABEASE_FAILURE("Save userinfo failure"),
     REGISTER_FAILURE("Reg to matrix failure"),
+    AZERO_ID_USED("Thr azero_id is areadly used"),
     USER_EXSEiT("User already reg"),
     USER_NOT_EXSEiT("User not reg"),
     SERVER_ERROT("Internal server error");
