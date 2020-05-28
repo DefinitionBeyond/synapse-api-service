@@ -37,7 +37,7 @@ public class TokenUtil {
         long expiry = curTime + this.validTime;
         Macaroon macaroon = new MacaroonsBuilder(this.location, this.secretKey, this.identifier)
                 .add_first_party_caveat("gen = 1")
-                .add_first_party_caveat("userId = " + this.userId)
+                .add_first_party_caveat("user_id = " + this.userId)
                 .add_first_party_caveat("type = login")
                 .add_first_party_caveat("time < " + expiry)
                 .getMacaroon();
