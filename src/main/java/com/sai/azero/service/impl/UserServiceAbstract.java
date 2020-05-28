@@ -91,9 +91,9 @@ public abstract class UserServiceAbstract {
     protected String getToken(UserPo po) {
         String token = new String();
         if (validTime > 0) {
-            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, po.getAzeroUserId(), validTime).getToken();
+            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, validTime).getToken();
         } else {
-            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier, po.getAzeroUserId()).getToken();
+            token = new TokenUtil(po.getUserName(), location, secretKey, po.getDeviceId(), identifier).getToken();
         }
         return token;
     }

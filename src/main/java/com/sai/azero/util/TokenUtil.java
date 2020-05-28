@@ -15,12 +15,11 @@ public class TokenUtil {
     private String identifier;
     private String secretKey;
     private String deviceId;
-    private String azeroUserId;
     private String userId;
     private long validTime;
     private static final long DEFAULT_VALID_TIME = 100 * 365 * 24 * 60 * 1000L;
 
-    public TokenUtil(String userName, String location, String secretKey, String deviceId, String identifier, String azeroUserId, long validTime) {
+    public TokenUtil(String userName, String location, String secretKey, String deviceId, String identifier, long validTime) {
         this.userId = "@" + userName + ":" + location + "";
         this.location = location;
         this.secretKey = secretKey;
@@ -29,8 +28,8 @@ public class TokenUtil {
         this.validTime = validTime;
     }
 
-    public TokenUtil(String userName, String location, String secretKey, String deviceId, String identifier, String azeroUserId) {
-        this(userName, location, secretKey, deviceId, identifier, azeroUserId, DEFAULT_VALID_TIME);
+    public TokenUtil(String userName, String location, String secretKey, String deviceId, String identifier) {
+        this(userName, location, secretKey, deviceId, identifier, DEFAULT_VALID_TIME);
     }
 
     public String getToken() throws RuntimeException {
@@ -39,7 +38,6 @@ public class TokenUtil {
         Macaroon macaroon = new MacaroonsBuilder(this.location, this.secretKey, this.identifier)
                 .add_first_party_caveat("gen = 1")
                 .add_first_party_caveat("userId = " + this.userId)
-                .add_first_party_caveat("azeroUserId = " + this.azeroUserId)
                 .add_first_party_caveat("type = login")
                 .add_first_party_caveat("time < " + expiry)
                 .getMacaroon();
