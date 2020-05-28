@@ -39,7 +39,7 @@ public class TokenUtil {
         Macaroon macaroon = new MacaroonsBuilder(this.location, this.secretKey, this.identifier)
                 .add_first_party_caveat("gen = 1")
                 .add_first_party_caveat("userId = " + this.userId)
-                .add_first_party_caveat("userId = " + this.azeroUserId)
+                .add_first_party_caveat("azeroUserId = " + this.azeroUserId)
                 .add_first_party_caveat("type = login")
                 .add_first_party_caveat("time < " + expiry)
                 .getMacaroon();
