@@ -27,7 +27,8 @@ public interface RoomMapper {
             "    AND c.state_key = #{userId}\n" +
             "    AND m.user_id != #{userId}\n" +
             "    AND m.membership = 'join'\n" +
-            "    AND rss.name IS NULL")
+            "    AND rss.name IS NULL" +
+            "    AND rsh.local_users_in_room > 1")
     List<RoomInfo> findDirectRoomByUserId(@Param("userId") String userId);
 
     @Select("SELECT DISTINCT user_id,room_id,  rss.name, rsh.local_users_in_room\n" +
