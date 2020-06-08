@@ -18,6 +18,7 @@ public class RegisterPo {
     private String device_id;
     private String password;
     private String username;
+    private String platform;
     private Auth auth;
 
     @Data

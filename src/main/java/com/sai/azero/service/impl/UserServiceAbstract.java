@@ -1,13 +1,12 @@
 package com.sai.azero.service.impl;
 
-import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
-import com.sai.azero.dao.UserDao;
-import com.sai.azero.po.RegisterPo;
-import com.sai.azero.po.UserPo;
-import com.sai.azero.po.UserResponse;
-import com.sai.azero.util.ResponseUtil;
-import com.sai.azero.util.TokenUtil;
-import lombok.extern.log4j.Log4j2;
+import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
+import static com.sai.azero.util.CodeConstant.USER_EXSEiT;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,16 +16,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
+import com.sai.azero.dao.UserDao;
+import com.sai.azero.po.RegisterPo;
+import com.sai.azero.po.UserPo;
+import com.sai.azero.po.UserResponse;
+import com.sai.azero.util.ResponseUtil;
+import com.sai.azero.util.TokenUtil;
+
+import lombok.extern.log4j.Log4j2;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.sai.azero.util.CodeConstant.CONNECTION_MATRIX_FAILURE;
-import static com.sai.azero.util.CodeConstant.USER_EXSEiT;
 
 /**
  * @Description
@@ -52,6 +53,9 @@ public abstract class UserServiceAbstract {
 
     @Value("${synapse.default.matrix.register.password}")
     protected String password;
+
+    @Value("${synapse.default.matrix.register.platform}")
+    protected String platform;
 
     @Value("${synapse.default.matrix.register.type}")
     protected String type;
@@ -99,7 +103,7 @@ public abstract class UserServiceAbstract {
     }
 
     private Mono<Map> register(String username, String deviceId) {
-        RegisterPo request = RegisterPo.builder().password(password).username(username).device_id(deviceId).auth(RegisterPo.Auth.builder().type(type).build()).build();
+        RegisterPo request = RegisterPo.builder().platform(platform).password(password).username(username).device_id(deviceId).auth(RegisterPo.Auth.builder().type(type).build()).build();
         return WebClient.create(registerUrl).post()
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .syncBody(request)
@@ -116,17 +120,20 @@ public abstract class UserServiceAbstract {
         return StringUtils.isEmpty(request.getDeviceId()) || StringUtils.isEmpty(request.getUserName()) ? false : true;
     }
 
-    protected boolean checkConflictUser(List<UserPo> userPoList, UserPo request) {
+    protected UserPo checkConflictUser(List<UserPo> userPoList, UserPo request) {
         if (CollectionUtils.isEmpty(userPoList)) {
-            return false;
+            return null;
         }
         List<UserPo> collect = userPoList.stream()
                 .filter(e -> e.getAzeroUserId().equals(request.getAzeroUserId()) &&
                         e.getUserId().equals(request.getUserId()) &&
                         e.getDeviceId().equals(request.getDeviceId()))
                 .collect(Collectors.toList());
-
-        return !CollectionUtils.isEmpty(collect);
+        if (CollectionUtils.isEmpty(collect)) {
+            return null;
+        }
+        return collect.get(0);
+        
 
     }
 

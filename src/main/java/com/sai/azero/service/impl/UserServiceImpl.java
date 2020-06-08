@@ -1,28 +1,28 @@
 package com.sai.azero.service.impl;
 
-import com.sai.azero.po.UserPo;
-import com.sai.azero.po.UserResponse;
-import com.sai.azero.service.UserService;
-import com.sai.azero.util.ResponseUtil;
-import lombok.extern.log4j.Log4j2;
+import static com.sai.azero.util.CodeConstant.AZERO_ID_USED;
+import static com.sai.azero.util.CodeConstant.MISS_PARAMETER;
+import static com.sai.azero.util.CodeConstant.OK;
+import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
+import static com.sai.azero.util.CodeConstant.SERVER_ERROT;
+
+import java.sql.Timestamp;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import com.sai.azero.po.UserPo;
+import com.sai.azero.po.UserResponse;
+import com.sai.azero.service.UserService;
+import com.sai.azero.util.ResponseUtil;
+
+import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Mono;
-
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.sai.azero.util.CodeConstant.AZERO_ID_USED;
-import static com.sai.azero.util.CodeConstant.MISS_PARAMETER;
-import static com.sai.azero.util.CodeConstant.OK;
-import static com.sai.azero.util.CodeConstant.SAVE_DATABEASE_FAILURE;
-import static com.sai.azero.util.CodeConstant.SERVER_ERROT;
 
 /**
  * @Description
@@ -61,8 +61,11 @@ public class UserServiceImpl extends UserServiceAbstract implements UserService 
                     .createTime(createTime)
                     .build();
             try {
-                if (!checkConflictUser(userPoList,request)) {
+            	UserPo userPo = checkConflictUser(userPoList,request);
+                if (null == userPo) {
                     dao.saveUser(request);
+                }else {
+                	response.setLoginToken(userPo.getLoginToken());
                 }
                 return ResponseUtil.generalResponse(HttpStatus.OK, response);
             } catch (Exception e) {
