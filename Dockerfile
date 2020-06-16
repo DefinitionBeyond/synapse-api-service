@@ -1,4 +1,4 @@
-FROM azero/openjdk:8u212
+FROM registry-vpc.cn-beijing.aliyuncs.com/azero/openjdk:8u212
 
 #设置服务名称
 ARG SERVER_NAME=synapse-api-service
