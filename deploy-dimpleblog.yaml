@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: $APPLICATION
+  namespace: $NAMESPEACE
+
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+    - port: 6061
+      protocol: TCP
+      targetPort: 6061
+  selector:
+    app: $APPLICATION
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: $APPLICATION
+  namespace: $NAMESPEACE
+  labels:
+    app: $APPLICATION
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $APPLICATION
+  template:
+    metadata:
+      name: $APPLICATION
+      labels:
+        app: $APPLICATION
+    spec:
+      containers:
+        - name: $APPLICATION
+          image: $IMAGE_NAME
+          ports:
+            - containerPort: 6061
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 512Mi
+          env:
+            - name: JAVA_OPTS
+              value: -Xms512 -Xmx512g -XX:MaxDirectMemorySize=640m -XX:MaxMetaspaceSize=1024m
+                  -Xss1m -Dapp.id=61001001 -Dapollo.configService=http://service-apollo-config-server-dev.apollo:8080  -Denv=dev
+                  -Dbootstrap.servers=10.250.1.196:9092,10.250.1.197:9092,10.250.1.198:9092
+                  -Dlog4j2.level=info
+          volumeMounts:
+            - mountPath: /opt/azero/$APPLICATION/logs
+              name: data-volume
+              subPath: logs
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: default-token-b4tk2
+              readOnly: true
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: $PVC_KEY
+        - name: default-token-b4tk2
+          secret:
+            defaultMode: 420
+            secretName: default-token-b4tk2
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: $SECRET_NAME
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
