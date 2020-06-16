@@ -50,7 +50,7 @@ spec:
               memory: 512Mi
           env:
             - name: JAVA_OPTS
-              value: -Xms512 -Xmx512g -XX:MaxDirectMemorySize=640m -XX:MaxMetaspaceSize=1024m
+              value: -Xms512m -Xmx512m -XX:MaxDirectMemorySize=640m -XX:MaxMetaspaceSize=1024m
                 -Xss1m -Dapp.id=61001001 -Dapollo.configService=http://service-apollo-config-server-dev.apollo:8080  -Denv=dev
                 -Dbootstrap.servers=10.250.1.196:9092,10.250.1.197:9092,10.250.1.198:9092
                 -Dlog4j2.level=info
